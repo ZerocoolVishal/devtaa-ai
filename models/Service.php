@@ -41,7 +41,7 @@ class Service extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'type', 'created_at'], 'required'],
+            [['name', 'type'], 'required'],
             [['type', 'link_type', 'sort_order', 'is_active', 'is_deleted'], 'integer'],
             [['created_at'], 'safe'],
             [['name', 'title', 'description', 'image', 'bg_color', 'text_color', 'secndary_text_color', 'button_bg_color', 'button_text_color', 'link'], 'string', 'max' => 255],
@@ -60,10 +60,10 @@ class Service extends \yii\db\ActiveRecord
             'description' => 'Description',
             'type' => 'Type',
             'image' => 'Image',
-            'bg_color' => 'Bg Color',
+            'bg_color' => 'Background Color',
             'text_color' => 'Text Color',
-            'secndary_text_color' => 'Secndary Text Color',
-            'button_bg_color' => 'Button Bg Color',
+            'secndary_text_color' => 'Secondary Text Color',
+            'button_bg_color' => 'Button Background Color',
             'button_text_color' => 'Button Text Color',
             'link_type' => 'Link Type',
             'link' => 'Link',
@@ -73,4 +73,15 @@ class Service extends \yii\db\ActiveRecord
             'is_deleted' => 'Is Deleted',
         ];
     }
+
+    public function beforeSave($insert)
+    {
+        if($this->isNewRecord) {
+            $this->created_at = date('Y-m-d H:i:s');
+        }
+
+        return parent::beforeSave($insert);
+    }
+
+
 }

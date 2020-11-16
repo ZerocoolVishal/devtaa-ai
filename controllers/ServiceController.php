@@ -66,8 +66,17 @@ class ServiceController extends Controller
     {
         $model = new Service();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->service_id]);
+        if ($model->load(Yii::$app->request->post())) {
+
+            if($model->save()) {
+                Yii::$app->session->setFlash('success', 'Service created successfully');
+                return $this->redirect(['index']);
+            }
+            else {
+                print_r($model->getErrors());
+                exit;
+            }
+
         }
 
         return $this->render('create', [
@@ -86,8 +95,11 @@ class ServiceController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->service_id]);
+        if ($model->load(Yii::$app->request->post())) {
+            if($model->save()) {
+                Yii::$app->session->setFlash('success', 'Service updated successfully');
+                return $this->redirect(['index']);
+            }
         }
 
         return $this->render('update', [
@@ -104,8 +116,11 @@ class ServiceController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
-
+        $model = $this->findModel($id);
+        $model->is_deleted = 1;
+        if($model->save()) {
+            Yii::$app->session->setFlash('success', 'Service deleted successfully');
+        }
         return $this->redirect(['index']);
     }
 

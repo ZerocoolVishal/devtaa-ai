@@ -33,7 +33,13 @@ $this->params['breadcrumbs'][] = $this->title;
             'name',
             'title',
             'description',
-            'type',
+            [
+                'attribute' => 'type',
+                'value' => function (\app\models\Service $model) {
+                    $types = \app\helpers\AppHelpers::getServiceTypes();
+                    return (isset($types[$model->type]))? $types[$model->type] : $model->type;
+                }
+            ],
             'image',
             'bg_color',
             'text_color',
@@ -41,11 +47,15 @@ $this->params['breadcrumbs'][] = $this->title;
             'button_bg_color',
             'button_text_color',
             'link_type',
-            'link',
+            'link:url',
             'sort_order',
             'created_at',
-            'is_active',
-            'is_deleted',
+            [
+                'attribute' => 'is_active',
+                'value' => function ($model) {
+                    return ($model->is_active)? 'Yes' : 'No';
+                }
+            ],
         ],
     ]) ?>
 

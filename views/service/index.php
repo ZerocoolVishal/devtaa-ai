@@ -26,12 +26,24 @@ $this->params['breadcrumbs'][] = $this->title;
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
-            'service_id',
+            //'service_id',
             'name',
             'title',
             'description',
-            'type',
-            //'image',
+            [
+                'attribute' => 'type',
+                'value' => function (\app\models\Service $model) {
+                    $types = \app\helpers\AppHelpers::getServiceTypes();
+                    return (isset($types[$model->type]))? $types[$model->type] : $model->type;
+                }
+            ],
+            [
+                'attribute' => 'image',
+                'format' => 'html',
+                'value' => function (\app\models\Service $model) {
+                    return Html::img("@web/uploads/$model->image", ['width' => '120px']);
+                }
+            ],
             //'bg_color',
             //'text_color',
             //'secndary_text_color',

@@ -1,5 +1,6 @@
 <?php
 
+use himiklab\sortablegrid\SortableGridView;
 use yii\helpers\Html;
 use yii\grid\GridView;
 
@@ -20,7 +21,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
-    <?= GridView::widget([
+    <?= SortableGridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'columns' => [

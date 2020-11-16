@@ -41,7 +41,8 @@ class ServiceSearch extends Service
     public function search($params)
     {
         $query = Service::find()
-            ->where(['is_deleted' => 0]);
+            ->where(['is_deleted' => 0])
+            ->orderBy(['sort_order' => 'ASC']);
 
         // add conditions that should always apply here
 

@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use himiklab\sortablegrid\SortableGridBehavior;
 use Yii;
 
 /**
@@ -45,6 +46,16 @@ class Service extends \yii\db\ActiveRecord
             [['type', 'link_type', 'sort_order', 'is_active', 'is_deleted'], 'integer'],
             [['created_at'], 'safe'],
             [['name', 'title', 'description', 'image', 'bg_color', 'text_color', 'secndary_text_color', 'button_bg_color', 'button_text_color', 'link'], 'string', 'max' => 255],
+        ];
+    }
+
+    public function behaviors()
+    {
+        return [
+            'sort' => [
+                'class' => SortableGridBehavior::className(),
+                'sortableAttribute' => 'sort_order'
+            ],
         ];
     }
 

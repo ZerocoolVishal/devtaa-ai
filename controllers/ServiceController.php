@@ -2,9 +2,11 @@
 
 namespace app\controllers;
 
+use himiklab\sortablegrid\SortableGridAction;
 use Yii;
 use app\models\Service;
 use app\models\ServiceSearch;
+use yii\base\Model;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -25,6 +27,16 @@ class ServiceController extends Controller
                 'actions' => [
                     'delete' => ['POST'],
                 ],
+            ],
+        ];
+    }
+
+    public function actions()
+    {
+        return [
+            'sort' => [
+                'class' => SortableGridAction::className(),
+                'modelName' => Service::className(),
             ],
         ];
     }

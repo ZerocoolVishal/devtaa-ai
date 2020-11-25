@@ -37,6 +37,7 @@ class ComposerStaticInit74903829c09477e474426e440717dd24
             'yii\\debug\\' => 10,
             'yii\\composer\\' => 13,
             'yii\\bootstrap\\' => 14,
+            'yii\\bootstrap4\\' => 15,
             'yii\\' => 4,
         ),
         'p' => 
@@ -134,7 +135,7 @@ class ComposerStaticInit74903829c09477e474426e440717dd24
         ),
         'yii\\faker\\' => 
         array (
-            0 => __DIR__ . '/..' . '/yiisoft/yii2-faker',
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-faker/src',
         ),
         'yii\\debug\\' => 
         array (
@@ -147,6 +148,10 @@ class ComposerStaticInit74903829c09477e474426e440717dd24
         'yii\\bootstrap\\' => 
         array (
             0 => __DIR__ . '/..' . '/yiisoft/yii2-bootstrap/src',
+        ),
+        'yii\\bootstrap4\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-bootstrap4/src',
         ),
         'yii\\' => 
         array (
@@ -280,7 +285,7 @@ class ComposerStaticInit74903829c09477e474426e440717dd24
         ),
         'Faker\\' => 
         array (
-            0 => __DIR__ . '/..' . '/fzaninotto/faker/src/Faker',
+            0 => __DIR__ . '/..' . '/fakerphp/faker/src/Faker',
         ),
         'Egulias\\EmailValidator\\' => 
         array (

@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use app\helpers\AppHelper;
 use app\models\BookExpertVisit;
+use app\models\Meeting;
 use app\models\User;
 use app\models\Users;
 use Yii;
@@ -173,4 +174,61 @@ class ApiController extends \yii\web\Controller
         return $this->sendResponse();
     }
 
+    public function actionBookMeeting() {
+
+        $request = Yii::$app->request->bodyParams;
+
+        $meeting = new Meeting();
+        $meeting->user_id = $request['user_id'];
+        $meeting->society_name = $request['society_name'];
+        $meeting->contact_name = $request['contact_name'];
+        $meeting->contact_phone = $request['contact_phone'];
+        $meeting->contact_designation = $request['contact_designation'];
+        $meeting->status = $request['status'];
+        $meeting->visit_date = $request['visit_date'];
+        $meeting->created_at = date('Y-m-d H:i:s');
+        $meeting->amount = 25000;
+
+        if ($meeting->save()) {
+
+            $model = Meeting::find()
+                ->where(['user_id' => $request['user_id']])
+                ->all();
+            $this->data = $model;
+            $this->message = 'Meeting Booked';
+
+            return $this->sendResponse();
+        }
+
+        return $this->sendResponse();
+    }
+
+    public function actionShowBookedMeeting($user_id) {
+
+        $model = Meeting::find()
+            ->where(['user_id' => $user_id])
+            ->all();
+
+        $this->data = $model;
+
+        return $this->sendResponse();
+    }
+
+    public function getFeasibilityReportHistory() {
+
+        $request = Yii::$app->request->bodyParams;
+
+    }
+
+    public function getFreeFeasibilityReport() {
+
+        $request = Yii::$app->request->bodyParams;
+
+    }
+
+    public function getFeasibilityReport() {
+
+        $request = Yii::$app->request->bodyParams;
+
+    }
 }

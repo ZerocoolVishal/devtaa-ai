@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\helpers\AppHelper;
+use app\models\BookExpertVisit;
 use app\models\User;
 use app\models\Users;
 use Yii;
@@ -70,7 +71,7 @@ class ApiController extends \yii\web\Controller
     private function getUser(Users $model)
     {
         return [
-            'user_id' => (string)$model->user_id,
+            'id' => (string)$model->user_id,
             'name' => $model->name,
             'email' => (string)$model->email,
             'phone' => (string)$model->phone,
@@ -114,6 +115,61 @@ class ApiController extends \yii\web\Controller
             $this->response_code = 500;
             $this->message = 'There was an error processing the request. Please try again later.';
         }
+        return $this->sendResponse();
+    }
+
+    public function actionBookExpertVisit() {
+
+        $request = Yii::$app->request->bodyParams;
+
+        if (empty($request)) {
+            $this->response_code = 500;
+            $this->message = 'There was an error processing the request. Please try again later.';
+        }
+
+        $model = new BookExpertVisit();
+        $model->user_id = $request['user_id'];
+        $model->society_name = $request['society_name'];
+        $model->society_type = $request['society_type'];
+        $model->society_address = $request['society_address'];
+        $model->contact_name = $request['contact_name'];
+        $model->contact_phone = $request['contact_phone'];
+        $model->contact_designation = $request['contact_designation'];
+        $model->status = 1;
+        $model->expert_name = 'Divyang Abhyankar';
+        $model->expert_phone = '+91 79725 92726';
+
+        $book_date = date('Y:m:d H:i:s');
+        $visit_date = date('Y-m-d', strtotime($book_date . ' +1 day'));
+
+        $model->visit_date = $visit_date;
+        $model->created_at = $book_date;
+
+        if($model->save()) {
+            $booked_visits = BookExpertVisit::find()
+                ->where(['user_id' => $model->user_id])
+                ->orderBy(['created_at' => SORT_DESC])
+                ->all();
+            $this->response_code = 200;
+            $this->message = 'Visit Booked';
+            $this->data = $booked_visits;
+        }
+
+        return $this->sendResponse();
+
+    }
+
+    public function actionExpertVisitHistory($user_id) {
+
+        $model = BookExpertVisit::find()
+            ->where(['user_id' => $user_id])
+            ->orderBy(['created_at' => SORT_DESC])
+            ->all();
+
+        $this->response_code = 200;
+        $this->message = 'Success';
+        $this->data = $model;
+
         return $this->sendResponse();
     }
 

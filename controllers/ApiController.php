@@ -184,7 +184,7 @@ class ApiController extends \yii\web\Controller
         $meeting->contact_name = $request['contact_name'];
         $meeting->contact_phone = $request['contact_phone'];
         $meeting->contact_designation = $request['contact_designation'];
-        $meeting->status = $request['status'];
+        $meeting->status = 0;
         $meeting->visit_date = $request['visit_date'];
         $meeting->created_at = date('Y-m-d H:i:s');
         $meeting->amount = 25000;

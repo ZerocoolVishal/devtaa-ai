@@ -7,6 +7,8 @@ use Yii;
 /**
  * This is the model class for table "tbl_meeting".
  *
+ *  statue => [0 => Not Confirmed, 1 => Confirmed, 2 => Done, 3 => Cancel]
+ *
  * @property int $meeting_id
  * @property int $user_id
  * @property string $society_name
@@ -19,7 +21,7 @@ use Yii;
  * @property float $amount
  * @property string $created_at
  *
- * @property TblUser $user
+ * @property Users $user
  */
 class Meeting extends \yii\db\ActiveRecord
 {
@@ -43,7 +45,7 @@ class Meeting extends \yii\db\ActiveRecord
             [['amount'], 'number'],
             [['society_name', 'contact_name', 'contact_designation'], 'string', 'max' => 255],
             [['contact_phone'], 'string', 'max' => 20],
-            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => TblUser::className(), 'targetAttribute' => ['user_id' => 'user_id']],
+            [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => Users::className(), 'targetAttribute' => ['user_id' => 'user_id']],
         ];
     }
 
@@ -74,6 +76,6 @@ class Meeting extends \yii\db\ActiveRecord
      */
     public function getUser()
     {
-        return $this->hasOne(TblUser::className(), ['user_id' => 'user_id']);
+        return $this->hasOne(Users::className(), ['user_id' => 'user_id']);
     }
 }

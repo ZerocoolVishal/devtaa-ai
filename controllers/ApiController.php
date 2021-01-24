@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use app\helpers\AppHelper;
 use app\models\BookExpertVisit;
+use app\models\FeasibilityReport;
 use app\models\Meeting;
 use app\models\User;
 use app\models\Users;
@@ -168,7 +169,6 @@ class ApiController extends \yii\web\Controller
             ->all();
 
         $this->response_code = 200;
-        $this->message = 'Success';
         $this->data = $model;
 
         return $this->sendResponse();
@@ -207,26 +207,61 @@ class ApiController extends \yii\web\Controller
 
         $model = Meeting::find()
             ->where(['user_id' => $user_id])
+            ->orderBy(['meeting_id' => SORT_DESC])
             ->all();
 
+        $this->response_code = 200;
         $this->data = $model;
 
         return $this->sendResponse();
     }
 
-    public function getFeasibilityReportHistory() {
+    public function actionFreeFeasibilityReport() {
 
         $request = Yii::$app->request->bodyParams;
 
+        $feasibilityReport = [
+            'FeasibilityReport' => $request
+        ];
+
+        $model = new FeasibilityReport();
+        $model->load($feasibilityReport);
+        $model->created_at = date('Y-m-d H:i:s');
+
+        if($model->save()) {
+
+            $reports = FeasibilityReport::find()
+                ->where(['user_id' => $model->user_id, 'is_paid' => 0])
+                ->orderBy(['feasibility_report_id' => SORT_DESC])
+                ->all();
+
+            $this->message = "Feasibility report generated successfully";
+            $this->response_code = 200;
+            $this->data = $reports;
+        }
+        else {
+            $this->message = "Internal service error";
+            $this->response_code = 500;
+            $this->data = $model->getErrors();
+        }
+
+        return $this->sendResponse();
     }
 
-    public function getFreeFeasibilityReport() {
+    public function actionFreeFeasibilityReportHistory($user_id) {
 
-        $request = Yii::$app->request->bodyParams;
+        $reports = FeasibilityReport::find()
+            ->where(['user_id' => $user_id, 'is_paid' => 0])
+            ->orderBy(['feasibility_report_id' => SORT_DESC])
+            ->all();
 
+        $this->response_code = 200;
+        $this->data = $reports;
+
+        return $this->sendResponse();
     }
 
-    public function getFeasibilityReport() {
+    public function actionFeasibilityReport() {
 
         $request = Yii::$app->request->bodyParams;
 

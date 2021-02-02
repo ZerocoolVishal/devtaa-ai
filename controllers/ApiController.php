@@ -261,6 +261,25 @@ class ApiController extends \yii\web\Controller
         return $this->sendResponse();
     }
 
+    public function actionFreeFeasibilityReportDetails($user_id, $feasibility_report_id) {
+
+        $report = FeasibilityReport::findOne(['user_id' => $user_id, 'feasibility_report_id' => $feasibility_report_id]);
+
+        if (empty($report)) {
+
+            $this->response_code = 404;
+            $this->message = "report not found";
+            $this->data = $report;
+
+            return $this->sendResponse();
+        }
+
+        $this->response_code = 200;
+        $this->data = $report;
+
+        return $this->sendResponse();
+    }
+
     public function actionFeasibilityReport() {
 
         $request = Yii::$app->request->bodyParams;

@@ -14,6 +14,7 @@ use Yii;
  * @property string|null $ward
  * @property string|null $village
  * @property string|null $plot_size
+ * @property float|null $existing_built_up_area
  * @property float|null $residential_redirecionar_rate
  * @property int|null $no_of_tenants
  * @property float|null $area_currently_consumed
@@ -48,9 +49,9 @@ class FeasibilityReport extends \yii\db\ActiveRecord
         return [
             [['user_id', 'society_name', 'society_type', 'society_address', 'contact_name', 'contact_phone', 'contact_designation'], 'required'],
             [['user_id', 'no_of_tenants', 'additional_area_expected', 'is_paid'], 'integer'],
-            [['residential_redirecionar_rate', 'area_currently_consumed', 'total_area'], 'number'],
+            [['residential_redirecionar_rate', 'area_currently_consumed', 'total_area', 'existing_built_up_area', 'plot_size'], 'number'],
             [['created_at'], 'safe'],
-            [['cts_no', 'location', 'ward', 'village', 'plot_size', 'society_name', 'society_type', 'society_address', 'contact_name', 'contact_phone', 'contact_designation'], 'string', 'max' => 255],
+            [['cts_no', 'location', 'ward', 'village', 'society_name', 'society_type', 'society_address', 'contact_name', 'contact_phone', 'contact_designation'], 'string', 'max' => 255],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => Users::className(), 'targetAttribute' => ['user_id' => 'user_id']],
         ];
     }
@@ -68,6 +69,7 @@ class FeasibilityReport extends \yii\db\ActiveRecord
             'ward' => 'Ward',
             'village' => 'Village',
             'plot_size' => 'Plot Size',
+            'existing_built_up_area' => 'Existing Built-up Area',
             'residential_redirecionar_rate' => 'Residential Redirecionar Rate',
             'no_of_tenants' => 'No Of Tenants',
             'area_currently_consumed' => 'Area Currently Consumed',

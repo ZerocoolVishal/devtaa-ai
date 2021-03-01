@@ -277,7 +277,7 @@ class ApiController extends \yii\web\Controller
             return $this->sendResponse();
         }
 
-        $part_1['plot_area'] = $report['total_area'];
+        $part_1['plot_area'] = $report['plot_size'];
         $part_1['road_width'] = 13.40;
 
         $deduction_for['road_set_back_area'] = 0;
@@ -303,7 +303,7 @@ class ApiController extends \yii\web\Controller
         $part_1['fsi_permissible'] = $fsi_permissible;
 
         /* FSI PERMISSIBLE AS PER REG.33(7)(B) */
-        $fsi_permissible_2['exist_authorized_b_u_area'] = 26038.12; // TODO: INPUT
+        $fsi_permissible_2['exist_authorized_b_u_area'] = $report['existing_built_up_area']; // TODO: INPUT
         $fsi_permissible_2['incentive_add_b_u_area'] = 6996.60;
         $fsi_permissible_2['total'] = $fsi_permissible_2['exist_authorized_b_u_area'] + $fsi_permissible_2['incentive_add_b_u_area'];
         $part_1['fsi_permissible_2'] = $fsi_permissible_2;
@@ -343,7 +343,7 @@ class ApiController extends \yii\web\Controller
 
         /* EXISTING CARPET AREA STATEMENT AS PER SOCIETY DOC'S */
 
-        $note['total_existing_carpet_area'] = $note['existing_members_residential'] + $note['existing_members_commercial'];
+        $note['total_existing_carpet_area'] = $report['area_currently_consumed'];
 
         /* CONSTRUCTION AREA  */
 
@@ -386,7 +386,7 @@ class ApiController extends \yii\web\Controller
         $deficient_area['deficient_area'] = $part_1['total_permissible_built_up_area_including_fungible'] / 100 * 25;
         $deficient_area['deficient_area_sqm'] = $deficient_area['deficient_area'] / 10.764;
         /* RATE */
-        $deficient_area['rr_rate'] = 57300; //TODO: Calculate
+        $deficient_area['rr_rate'] = $report['residential_redirecionar_rate']; //TODO: Calculate
         /* R.R.RATE x 25% */
         $deficient_area['rr_rate_25'] = $deficient_area['rr_rate'] / 4;
 

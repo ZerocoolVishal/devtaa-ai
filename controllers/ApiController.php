@@ -263,7 +263,10 @@ class ApiController extends \yii\web\Controller
 
     public function actionFreeFeasibilityReportDetails($user_id, $feasibility_report_id) {
 
-        $report = FeasibilityReport::findOne(['user_id' => $user_id, 'feasibility_report_id' => $feasibility_report_id]);
+        $report = FeasibilityReport::find()
+            ->where(['user_id' => $user_id, 'feasibility_report_id' => $feasibility_report_id])
+            ->asArray()
+            ->one();
 
         if (empty($report)) {
 
@@ -273,6 +276,153 @@ class ApiController extends \yii\web\Controller
 
             return $this->sendResponse();
         }
+
+        $part_1['plot_area'] = $report['total_area'];
+        $part_1['road_width'] = 13.40;
+
+        $deduction_for['road_set_back_area'] = 0;
+        $deduction_for['proposed_dp_road'] = 0;
+        $deduction_for['any_reservation'] = 0;
+        $deduction_for['total'] = $deduction_for['road_set_back_area'] + $deduction_for['proposed_dp_road'] + $deduction_for['any_reservation'];
+
+        $part_1['deduction_for'] = $deduction_for;
+        $part_1['balance_area_of_plot'] = $part_1['plot_area'] - $deduction_for['total'];
+        $part_1['net_area_of_plot'] = $part_1['balance_area_of_plot'];
+
+        /* FSI PERMISSIBLE  as per Reg.No.30, Table 12 of DCPR 30. */
+        $fsi_permissible['zonal_basic_fsi'] = 1;
+        $fsi_permissible['zonal_basic_fsi_area'] = $part_1['net_area_of_plot'] * $fsi_permissible['zonal_basic_fsi'];
+        $fsi_permissible['additional_fsi'] = 0.50;
+        $fsi_permissible['additional_fsi_area'] = $part_1['net_area_of_plot'] * $fsi_permissible['additional_fsi'];
+        $fsi_permissible['admissible_tdr'] = 0.70; // TODO: INPUT
+        $fsi_permissible['admissible_tdr_area'] = $part_1['net_area_of_plot'] * $fsi_permissible['admissible_tdr'];
+
+        $fsi_permissible['maximum_fsi_cap'] =  $fsi_permissible['zonal_basic_fsi'] + $fsi_permissible['additional_fsi'] + $fsi_permissible['admissible_tdr'];
+        $fsi_permissible['total'] = $fsi_permissible['zonal_basic_fsi_area'] + $fsi_permissible['additional_fsi_area'] + $fsi_permissible['admissible_tdr_area'];
+
+        $part_1['fsi_permissible'] = $fsi_permissible;
+
+        /* FSI PERMISSIBLE AS PER REG.33(7)(B) */
+        $fsi_permissible_2['exist_authorized_b_u_area'] = 26038.12; // TODO: INPUT
+        $fsi_permissible_2['incentive_add_b_u_area'] = 6996.60;
+        $fsi_permissible_2['total'] = $fsi_permissible_2['exist_authorized_b_u_area'] + $fsi_permissible_2['incentive_add_b_u_area'];
+        $part_1['fsi_permissible_2'] = $fsi_permissible_2;
+
+        /* BALANCE B/U AREA THAT MAY AVAIL BY FSI BY CHARGING PREMIUM/PURCHASING TDR */
+        $part_1['balance_b_u_area'] = $fsi_permissible['total'] - $fsi_permissible_2['total'];
+
+        /* PERM. B/U AREA AS PER REG 33(7)(B) */
+        $part_1['perm_b_u_area'] = $part_1['balance_b_u_area'] + $fsi_permissible_2['total'];
+
+        /* FUNGIBLE FSI As per Reg.No.31(3) of DCPR 2034 (FUNGIBLE FSI 35% ) */
+        $part_1['fungible_fsi'] = $part_1['perm_b_u_area'] / 100 * 35;
+
+        /* TOTAL PERMISSIBLE BUILT UP AREA including Fungible */
+        $part_1['total_permissible_built_up_area_including_fungible'] = $part_1['perm_b_u_area'] + $part_1['fungible_fsi'];
+
+        /* RERA CARPET AREA (92%) */
+        $part_1['rera_carpet_area'] = $part_1['total_permissible_built_up_area_including_fungible'] / 100 * 92;
+
+        $note['fsi_by_charging_premium'] = $fsi_permissible['additional_fsi_area'];
+        $note['tdr_to_be_purchased_from_open_market'] = $part_1['balance_b_u_area'] - $note['fsi_by_charging_premium'];
+        $note['existing_built_up_area_as_per_society'] = $fsi_permissible_2['exist_authorized_b_u_area'];
+
+        /* FREE FUNGIBLE 35% OF EXISTING B/U AREA */
+        $note['free_fungible'] = $note['existing_built_up_area_as_per_society'] / 100 * 35;
+        /* FUNGIBLE BY CHARGING PREMIUM = Total permissible fungible (8) LESS Free fungible  */
+        $note['fungible_by_charging_premium'] = $part_1['fungible_fsi'] +  $part_1['perm_b_u_area'];
+
+        $note['existing_members_residential'] = $report['no_of_tenants'];
+        $note['existing_members_commercial'] = 0;
+
+        /* AS PER DCPR 33(7)(B) Additional FSI  = 15% OF Existing Builtup area OR 10.00Sq.M. per existing member; whichever is greater */
+        $note['additional_fsi_as_dcpr'] = $note['existing_members_residential'] * 10;
+
+        /* EXISTING CARPET AREA STATEMENT AS PER SOCIETY DOC'S */
+
+        /* Existing members (Residential)  */
+        $note['existing_members_residential'] = $report['area_currently_consumed'];
+
+        /* Existing members (Commercial)  */
+        $note['existing_members_commercial'] = 0;
+
+        $note['total_existing_carpet_area'] = $note['existing_members_residential'] + $note['existing_members_commercial'];
+
+        /* CONSTRUCTION AREA  */
+
+        /* CONSTRUCTION OF NET BUILT-UP AREA */
+        $note['construction_of_net_built_up_area'] = $part_1['total_permissible_built_up_area_including_fungible'];
+
+        /* CONSTRUCTION AREA OF STAIRCASE AND LIFT (25%) */
+        $note['construction_area_of_staircase_and_lift'] = $note['construction_of_net_built_up_area'] / 100 * 25;
+
+        /* CONSTRUCTION AREA FOR PARKING (25%) */
+        $note['construction_area_for_parking'] = $note['construction_of_net_built_up_area'] / 100 * 25;
+
+        /* TOTAL CONSTRUCTION AREA */
+        $note['total_construction_area'] = $note['construction_of_net_built_up_area'] + $note['construction_area_of_staircase_and_lift'] +  $note['construction_area_for_parking'];
+
+        $part_1['note'] = $note;
+
+        /* ADDITIONAL AREA */
+        $additional_area['additional_area'] = $part_1['total_permissible_built_up_area_including_fungible'] - $part_1['net_area_of_plot'];
+        $additional_area['slum'] =  $note['tdr_to_be_purchased_from_open_market'];
+        $additional_area['gen_tdr_and_incentive'] = $fsi_permissible['admissible_tdr_area'] - $additional_area['slum'];
+        $additional_area['FSI_0_50'] = $note['fsi_by_charging_premium'];
+        $additional_area['fungible'] = $part_1['fungible_fsi'];
+        $additional_area['total'] = $additional_area['slum'] + $additional_area['gen_tdr_and_incentive'] + $additional_area['FSI_0_50'] + $additional_area['fungible'];
+
+        $additional_area['additional_area_sqm'] = $additional_area['additional_area'] / 10.764;
+
+        /* PERCENTAGE OF ADDITIONAL FSI */
+        $additional_area['slum_percentage'] = 100 * $additional_area['slum'] / $additional_area['additional_area'];
+        $additional_area['gen_tdr_and_incentive_percentage'] = 100 * $additional_area['gen_tdr_and_incentive'] / $additional_area['additional_area'];
+        $additional_area['FSI_0_50_percentage'] = 100 * $additional_area['FSI_0_50'] / $additional_area['additional_area'];
+        $additional_area['fungible_percentage'] = 100 * $additional_area['fungible'] / $additional_area['additional_area'];
+        $additional_area['total_percentage'] = $additional_area['slum_percentage'] + $additional_area['gen_tdr_and_incentive_percentage'] + $additional_area['FSI_0_50_percentage'] + $additional_area['fungible_percentage'];
+
+
+        $part_1['additional_area'] = $additional_area;
+
+        /* DEFICIENT AREA */
+        /* Note:- At present 25% area of net built up area is considered as Deficient area */
+        $deficient_area['deficient_area'] = $part_1['total_permissible_built_up_area_including_fungible'] / 100 * 25;
+        $deficient_area['deficient_area_sqm'] = $deficient_area['deficient_area'] / 10.764;
+        /* RATE */
+        $deficient_area['rr_rate'] = 57300; //TODO: Calculate
+        /* R.R.RATE x 25% */
+        $deficient_area['rr_rate_25'] = $deficient_area['rr_rate'] / 4;
+
+        /* Deficient area as per percentage */
+        $deficient_area['slum_percentage'] = $deficient_area['deficient_area_sqm'] / 100 * $additional_area['slum_percentage'];
+        $deficient_area['gen_tdr_and_incentive_percentage'] = $deficient_area['deficient_area_sqm'] / 100 * $additional_area['gen_tdr_and_incentive_percentage'];
+        $deficient_area['FSI_0_50_percentage'] = $deficient_area['deficient_area_sqm'] / 100 * $additional_area['FSI_0_50_percentage'];
+        $deficient_area['fungible_percentage'] = $deficient_area['deficient_area_sqm'] / 100 * $additional_area['fungible_percentage'];
+        $deficient_area['total_percentage'] = $deficient_area['slum_percentage'] + $deficient_area['gen_tdr_and_incentive_percentage'] + $deficient_area['FSI_0_50_percentage'] + $deficient_area['fungible_percentage'];
+
+        /* Deficient AMOUNT */
+        $deficient_area['amount']['slum_amount'] = $deficient_area['rr_rate_25'] * $deficient_area['slum_percentage'];
+        $deficient_area['amount']['gen_tdr_and_incentive_amount'] = $deficient_area['rr_rate_25'] * $deficient_area['gen_tdr_and_incentive_percentage'];
+        $deficient_area['amount']['FSI_0_50_amount'] = $deficient_area['rr_rate_25'] * $deficient_area['FSI_0_50_percentage'];
+        $deficient_area['amount']['fungible_amount'] = $deficient_area['rr_rate_25'] * $deficient_area['fungible_percentage'];
+
+        /* Deficient AMOUNT AS PER PERCENTAGE */
+        $deficient_area['amount_as_per_percentage']['slum_percentage'] = $deficient_area['amount']['slum_amount'] / 100 * 10;
+        $deficient_area['amount_as_per_percentage']['gen_tdr_and_incentive_percentage'] = $deficient_area['amount']['gen_tdr_and_incentive_amount'] / 100 * 100;
+        $deficient_area['amount_as_per_percentage']['FSI_0_50_percentage'] = $deficient_area['amount']['FSI_0_50_amount'] / 100 * 100;
+        $deficient_area['amount_as_per_percentage']['fungible_percentage'] = $deficient_area['amount']['fungible_amount'] / 100 * 25;
+        $deficient_area['amount_as_per_percentage']['total'] =
+            $deficient_area['amount_as_per_percentage']['slum_percentage']
+            + $deficient_area['amount_as_per_percentage']['gen_tdr_and_incentive_percentage']
+            + $deficient_area['amount_as_per_percentage']['FSI_0_50_percentage']
+            + $deficient_area['amount_as_per_percentage']['fungible_percentage'];
+
+        /* Deficient Premium as per Telescopic method by adding 20% */
+        $deficient_area['deficient_premium'] = $deficient_area['amount_as_per_percentage']['total'] * 1.2;
+
+        $part_1['deficient_area'] = $deficient_area;
+
+        $report['part_1'] = $part_1;
 
         $this->response_code = 200;
         $this->data = $report;

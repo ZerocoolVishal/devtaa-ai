@@ -332,19 +332,16 @@ class ApiController extends \yii\web\Controller
         /* FUNGIBLE BY CHARGING PREMIUM = Total permissible fungible (8) LESS Free fungible  */
         $note['fungible_by_charging_premium'] = $part_1['fungible_fsi'] +  $part_1['perm_b_u_area'];
 
+        /* Existing members (Residential)  */
         $note['existing_members_residential'] = $report['no_of_tenants'];
+
+        /* Existing members (Commercial)  */
         $note['existing_members_commercial'] = 0;
 
         /* AS PER DCPR 33(7)(B) Additional FSI  = 15% OF Existing Builtup area OR 10.00Sq.M. per existing member; whichever is greater */
         $note['additional_fsi_as_dcpr'] = $note['existing_members_residential'] * 10;
 
         /* EXISTING CARPET AREA STATEMENT AS PER SOCIETY DOC'S */
-
-        /* Existing members (Residential)  */
-        $note['existing_members_residential'] = $report['area_currently_consumed'];
-
-        /* Existing members (Commercial)  */
-        $note['existing_members_commercial'] = 0;
 
         $note['total_existing_carpet_area'] = $note['existing_members_residential'] + $note['existing_members_commercial'];
 
@@ -407,15 +404,15 @@ class ApiController extends \yii\web\Controller
         $deficient_area['amount']['fungible_amount'] = $deficient_area['rr_rate_25'] * $deficient_area['fungible_percentage'];
 
         /* Deficient AMOUNT AS PER PERCENTAGE */
-        $deficient_area['amount_as_per_percentage']['slum_percentage'] = $deficient_area['amount']['slum_amount'] / 100 * 10;
-        $deficient_area['amount_as_per_percentage']['gen_tdr_and_incentive_percentage'] = $deficient_area['amount']['gen_tdr_and_incentive_amount'] / 100 * 100;
-        $deficient_area['amount_as_per_percentage']['FSI_0_50_percentage'] = $deficient_area['amount']['FSI_0_50_amount'] / 100 * 100;
-        $deficient_area['amount_as_per_percentage']['fungible_percentage'] = $deficient_area['amount']['fungible_amount'] / 100 * 25;
+        $deficient_area['amount_as_per_percentage']['slum'] = $deficient_area['amount']['slum_amount'] / 100 * 10;
+        $deficient_area['amount_as_per_percentage']['gen_tdr_and_incentive'] = $deficient_area['amount']['gen_tdr_and_incentive_amount'] / 100 * 100;
+        $deficient_area['amount_as_per_percentage']['FSI_0_50'] = $deficient_area['amount']['FSI_0_50_amount'] / 100 * 100;
+        $deficient_area['amount_as_per_percentage']['fungible'] = $deficient_area['amount']['fungible_amount'] / 100 * 25;
         $deficient_area['amount_as_per_percentage']['total'] =
-            $deficient_area['amount_as_per_percentage']['slum_percentage']
-            + $deficient_area['amount_as_per_percentage']['gen_tdr_and_incentive_percentage']
-            + $deficient_area['amount_as_per_percentage']['FSI_0_50_percentage']
-            + $deficient_area['amount_as_per_percentage']['fungible_percentage'];
+            $deficient_area['amount_as_per_percentage']['slum']
+            + $deficient_area['amount_as_per_percentage']['gen_tdr_and_incentive']
+            + $deficient_area['amount_as_per_percentage']['FSI_0_50']
+            + $deficient_area['amount_as_per_percentage']['fungible'];
 
         /* Deficient Premium as per Telescopic method by adding 20% */
         $deficient_area['deficient_premium'] = $deficient_area['amount_as_per_percentage']['total'] * 1.2;

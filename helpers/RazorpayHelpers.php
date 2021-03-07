@@ -52,8 +52,10 @@ class RazorpayHelpers
         return [
             "key" => $keyId,
             "amount" => $payment_amount,
+            "currency" => $displayCurrency,
             "name" => $payment_name,
             "description" => $payment_description,
+            "order_id" => $razorpayOrderId,
             "prefill" => [
                 "name" => $user_name,
                 "email" => $user_email,
@@ -64,9 +66,8 @@ class RazorpayHelpers
                 "merchant_order_id" => "",
             ],
             "theme" => [
-                "color" => "#3498db"
+                "color" => "#000"
             ],
-            "order_id" => $razorpayOrderId,
         ];
     }
 

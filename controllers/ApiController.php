@@ -10,6 +10,8 @@ use app\models\Meeting;
 use app\models\Payments;
 use app\models\User;
 use app\models\Users;
+use Razorpay\Api\Api;
+use Razorpay\Api\Errors\SignatureVerificationError;
 use Yii;
 use yii\web\Response;
 
@@ -459,7 +461,7 @@ class ApiController extends \yii\web\Controller
             $payment->payment_type_id = $model->feasibility_report_id;
             $payment->total_amount = Yii::$app->params['FEASIBILITY_REPORT_COST'];
             $payment->payment_date = date('Y-m-d H:i:s');
-            $payment->is_processed = 0;
+            $payment->is_processed = Payments::PAYMENT_INIT;
             $payment->currency_code = Yii::$app->params['displayCurrency'];
             $payment->save();
 
@@ -478,6 +480,7 @@ class ApiController extends \yii\web\Controller
             $this->response_code = 200;
             $this->data = [
                 'reports' => $reports,
+                'report' => $model,
                 'paymentDetails' => $paymentDetails
             ];
         }
@@ -504,6 +507,86 @@ class ApiController extends \yii\web\Controller
 
         $this->response_code = 200;
         $this->data = $reports;
+
+        return $this->sendResponse();
+    }
+
+    public function actionVerifyRazorpay()
+    {
+
+        $keyId = \Yii::$app->params['keyId'];
+        $keySecret = \Yii::$app->params['keySecret'];
+
+        if (empty(Yii::$app->request->post('razorpay_payment_id')) === false) {
+
+            $api = new Api($keyId, $keySecret);
+
+            try {
+                $attributes = [
+                    'razorpay_order_id' => Yii::$app->request->post('razorpay_order_id'),
+                    'razorpay_payment_id' => Yii::$app->request->post('razorpay_payment_id'),
+                    'razorpay_signature' => Yii::$app->request->post('razorpay_signature'),
+                ];
+                $api->utility->verifyPaymentSignature($attributes);
+            }
+            catch(SignatureVerificationError $e) {
+                $this->response_code = 200;
+                $this->message = $e->getMessage();
+                return $this->sendResponse();
+            }
+
+            // Update Payment Model
+            $paymentModel = Payments::findOne(['razorpay_order_id' => $attributes['razorpay_order_id']]);
+
+            if (empty($paymentModel)) {
+                $this->response_code = 501;
+                $this->message = 'Payment Failed, Please try again later';
+            }
+
+            $paymentModel->is_processed = Payments::PAYMENT_SUCCESS;
+            $paymentModel->razorpay_payment_id = $attributes['razorpay_payment_id'];
+            $paymentModel->razorpay_signature = $attributes['razorpay_signature'];
+
+            if ($paymentModel->save(false)) {
+
+                // IF Payment is done for Report
+                if ($paymentModel->payment_type === Payments::FEASIBILITY_REPORT) {
+
+                    $reportModel = FeasibilityReport::findOne($paymentModel->payment_type_id);
+
+                    if (empty($reportModel)) {
+                        $this->response_code = 502;
+                        $this->message = 'Payment Failed, Please try again later';
+                    }
+
+                    $reportModel->is_paid = 1;
+                    $reportModel->is_payment_processed = FeasibilityReport::PAYMENT_SUCCESS;
+
+                    if ($reportModel->save(false)) {
+                        $this->response_code = 200;
+                        $this->message = 'Payment Successful';
+                        return $this->sendResponse();
+                    }
+                    else {
+                        $this->response_code = 503;
+                        $this->message = 'Payment Failed, Please try again later';
+                    }
+                }
+
+                $this->response_code = 201;
+                $this->message = 'Payment Successful, Unknown payment type';
+                return $this->sendResponse();
+            }
+
+            else {
+                $this->response_code = 504;
+                $this->message = 'Payment Failed, Please try again later';
+            }
+        }
+        else {
+            $this->response_code = 500;
+            $this->message = 'Payment Failed, Please try again later';
+        }
 
         return $this->sendResponse();
     }

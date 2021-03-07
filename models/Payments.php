@@ -23,6 +23,11 @@ class Payments extends \yii\db\ActiveRecord
     const BOOK_MEETING = 'BM';
     const FEASIBILITY_REPORT = 'BE';
 
+    const NO_PAYMENT = 0;
+    const PAYMENT_INIT = 1;
+    const PAYMENT_SUCCESS = 2;
+    const PAYMENT_FAILED = 3;
+
     /**
      * {@inheritdoc}
      */

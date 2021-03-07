@@ -3,9 +3,11 @@
 namespace app\controllers;
 
 use app\helpers\AppHelper;
+use app\helpers\RazorpayHelpers;
 use app\models\BookExpertVisit;
 use app\models\FeasibilityReport;
 use app\models\Meeting;
+use app\models\Payments;
 use app\models\User;
 use app\models\Users;
 use Yii;
@@ -431,5 +433,79 @@ class ApiController extends \yii\web\Controller
 
         $request = Yii::$app->request->bodyParams;
 
+        $feasibilityReport = [
+            'FeasibilityReport' => $request
+        ];
+
+        $model = new FeasibilityReport();
+        $model->load($feasibilityReport);
+        $model->is_paid = FeasibilityReport::PAYMENT_INIT;
+        $model->is_payment_processed = 1;
+        $model->created_at = date('Y-m-d H:i:s');
+
+        if($model->save()) {
+
+            $reports = FeasibilityReport::find()
+                ->where([
+                    'user_id' => $model->user_id,
+                    'is_paid' => 1,
+                    'is_payment_processed' => FeasibilityReport::PAYMENT_SUCCESS
+                ])
+                ->orderBy(['feasibility_report_id' => SORT_DESC])
+                ->all();
+
+            $payment = new Payments();
+            $payment->payment_type = Payments::FEASIBILITY_REPORT;
+            $payment->payment_type_id = $model->feasibility_report_id;
+            $payment->total_amount = Yii::$app->params['FEASIBILITY_REPORT_COST'];
+            $payment->payment_date = date('Y-m-d H:i:s');
+            $payment->is_processed = 0;
+            $payment->currency_code = Yii::$app->params['displayCurrency'];
+            $payment->save();
+
+            $paymentDetails = RazorpayHelpers::pay(
+                $payment->payment_id,
+                $payment->total_amount,
+                'Feasibility Report',
+                'Devtaa A.I Services',
+                $model->user->name,
+                $model->user->email,
+                $model->user->phone,
+                $payment->currency_code
+            );
+
+            $this->message = "Feasibility report generated successfully";
+            $this->response_code = 200;
+            $this->data = [
+                'reports' => $reports,
+                'paymentDetails' => $paymentDetails
+            ];
+        }
+        else {
+            $this->message = "Internal service error";
+            $this->response_code = 500;
+            $this->data = $model->getErrors();
+        }
+
+        return $this->sendResponse();
+
     }
+
+    public function actionFeasibilityReportHistory($user_id) {
+
+        $reports = FeasibilityReport::find()
+            ->where([
+                'user_id' => $user_id,
+                'is_paid' => 1,
+                'is_payment_processed' => FeasibilityReport::PAYMENT_SUCCESS
+            ])
+            ->orderBy(['feasibility_report_id' => SORT_DESC])
+            ->all();
+
+        $this->response_code = 200;
+        $this->data = $reports;
+
+        return $this->sendResponse();
+    }
+
 }

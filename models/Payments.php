@@ -20,6 +20,9 @@ use Yii;
  */
 class Payments extends \yii\db\ActiveRecord
 {
+    const BOOK_MEETING = 'BM';
+    const FEASIBILITY_REPORT = 'BE';
+
     /**
      * {@inheritdoc}
      */

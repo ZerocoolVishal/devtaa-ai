@@ -245,7 +245,9 @@ class Query extends Component implements QueryInterface, ExpressionInterface
         if ($this->emulateExecution) {
             return [];
         }
+
         $rows = $this->createCommand($db)->queryAll();
+
         return $this->populate($rows);
     }
 
@@ -290,7 +292,7 @@ class Query extends Component implements QueryInterface, ExpressionInterface
      * The value returned will be the first column in the first row of the query results.
      * @param Connection $db the database connection used to generate the SQL statement.
      * If this parameter is not given, the `db` application component will be used.
-     * @return string|null|false the value of the first column in the first row of the query result.
+     * @return string|int|null|false the value of the first column in the first row of the query result.
      * False is returned if the query result is empty.
      */
     public function scalar($db = null)

@@ -26,13 +26,19 @@ use Yii;
  * @property string $contact_name
  * @property string $contact_phone
  * @property string $contact_designation
- * @property string $is_paid
+ * @property int $is_paid
+ * @property int $is_payment_processed
  * @property string|null $created_at
  *
  * @property Users $user
  */
 class FeasibilityReport extends \yii\db\ActiveRecord
 {
+    const NO_PAYMENT = 0;
+    const PAYMENT_INIT = 1;
+    const PAYMENT_SUCCESS = 2;
+    const PAYMENT_FAILED = 3;
+
     /**
      * {@inheritdoc}
      */
@@ -48,7 +54,7 @@ class FeasibilityReport extends \yii\db\ActiveRecord
     {
         return [
             [['user_id', 'society_name', 'society_type', 'society_address', 'contact_name', 'contact_phone', 'contact_designation'], 'required'],
-            [['user_id', 'no_of_tenants', 'additional_area_expected', 'is_paid'], 'integer'],
+            [['user_id', 'no_of_tenants', 'additional_area_expected', 'is_paid', 'is_payment_processed'], 'integer'],
             [['residential_redirecionar_rate', 'area_currently_consumed', 'total_area', 'existing_built_up_area', 'plot_size'], 'number'],
             [['created_at'], 'safe'],
             [['cts_no', 'location', 'ward', 'village', 'society_name', 'society_type', 'society_address', 'contact_name', 'contact_phone', 'contact_designation'], 'string', 'max' => 255],
